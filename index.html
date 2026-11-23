@@ -134,7 +134,7 @@ dialog::backdrop{background:#1a103599}
 
   <section id="v-contas" hidden>
     <div class="bar"><div class="search"><span>🔍</span><input id="qC" placeholder="Buscar conta" aria-label="Buscar conta"></div><button class="pri" id="addC">＋ Nova conta</button></div>
-    <p class="muted" style="margin-top:0">Contas que se repetem todo mês (aluguel, luz, internet…). Quando pagar, toque em “Paguei” e ela entra nos gastos do mês.</p>
+    <p class="muted" style="margin-top:0">Contas que se repetem todo mês (aluguel, luz, internet…). Quando pagar, toque em “✅ Paguei” e ela entra nos gastos do mês. Marcou sem querer? Toque em “↩️ Não paguei ainda”.</p>
     <div class="card"><ul class="list" id="listaC"></ul></div>
     <div class="card"><h2>🛟 Cópia de segurança</h2><p class="muted">Copie seus dados para guardar onde quiser, ou cole uma cópia para recuperar.</p>
       <div class="actions" style="justify-content:flex-start"><button id="baixar">⬇️ Baixar cópia</button><button id="copiar">📋 Copiar meus dados</button><button id="colar">📥 Colar uma cópia</button><button id="abrirArq">📂 Abrir arquivo de cópia</button></div><input type="file" id="arq" accept=".json,application/json" hidden></div>
@@ -182,8 +182,8 @@ function contaItem(c){
   const p=pagaNoMes(c),[y,m]=mes.split('-').map(Number);
   const venc=mes+'-'+String(Math.min(+c.dia||1,new Date(y,m,0).getDate())).padStart(2,'0');
   const d=Math.round((new Date(venc+'T12:00')-new Date(hoje()+'T12:00'))/864e5);
-  const tag=p?`<span class="tag ok">✅ Paga ${fmtD(p.data).slice(0,5)}</span>`:d<0?`<span class="tag late">⚠️ Venceu dia ${+c.dia}</span>`:d===0?'<span class="tag late">⏰ Vence hoje</span>':`<span class="tag">🗓️ Vence dia ${+c.dia}</span>`;
-  return `<li>${bola(c.cat)}<div class="li-main"><b>${esc(c.nome)}</b><span class="muted">${esc(c.cat)} · ${brl(c.valor)}</span><div>${tag}</div></div>${p?'':`<button data-pagar="${esc(c.id)}">✅ Paguei</button>`}<button class="ic" data-ec="${esc(c.id)}" aria-label="Editar">✎</button></li>`;
+  const tag=p?`<span class="tag ok">✅ Paga ${fmtD(p.data).slice(0,5)}</span>`:d<0?`<span class="tag late">⚠️ Venceu dia ${+c.dia}</span>`:d===0?'<span class="tag late">⏰ Vence hoje</span>':`<span class="tag">⏳ Não paga ainda · vence dia ${+c.dia}</span>`;
+  return `<li>${bola(c.cat)}<div class="li-main"><b>${esc(c.nome)}</b><span class="muted">${esc(c.cat)} · ${brl(c.valor)}</span><div>${tag}</div></div>${p?`<button data-despagar="${esc(c.id)}">↩️ Não paguei ainda</button>`:`<button data-pagar="${esc(c.id)}">✅ Paguei</button>`}<button class="ic" data-ec="${esc(c.id)}" aria-label="Editar">✎</button></li>`;
 }
 function render(){
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
@@ -275,6 +275,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   else if(b.dataset.eg)formMov(b.dataset.eg);
   else if(b.dataset.ec)formConta(b.dataset.ec);
   else if(b.dataset.pagar)pagar(b.dataset.pagar);
+  else if(b.dataset.despagar){const cid=b.dataset.despagar,antes=S.movs.slice();S.movs=S.movs.filter(m=>!(m.conta===cid&&m.data.slice(0,7)===mes));toast('↩️ Voltou para “não paga”.',()=>{S.movs=antes});mudou()}
 });
 $('#quickAdd').onclick=()=>formMov();$('#addG').onclick=()=>formMov();$('#addC').onclick=()=>formConta();$('#editRenda').onclick=formRenda;$('#cardEntrou').onclick=formRenda;$('#cardEntrou').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();formRenda()}};$('#addComp').onclick=()=>formMov(null,'entrada');
 const mover=k=>{const[y,m]=mes.split('-').map(Number);const d=new Date(y,m-1+k,1);mes=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');render()};
